@@ -3,7 +3,7 @@
 
 MUOS IPTV M3U Playlist Organizer
 
-This Python script processes M3U playlist files, categorizes channels based on URL patterns, and organizes them into folders. It also downloads and saves channel logos from the provided URLs.
+This Python script processes M3U playlist files, categorizes channels based on URL patterns, and organizes them into folders. It also downloads and saves channel logos from the provided URLs. It has been made with ChatGpt so dump it in that if you need support with it.
 
 ## Features:
 - **Categorization**: Channels are categorized into "TV Shows", "Movies", "TV Channels", or "Others" based on the URL.
