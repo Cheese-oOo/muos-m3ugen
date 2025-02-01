@@ -1,78 +1,88 @@
-# muos-m3ugen
-IPTV M3U Splitter for MuOS
-This Python script processes an M3U playlist file, organizes the channels into categories, downloads logos for each channel, and creates new M3U files for each channel with their respective details.
 
-Here’s a detailed breakdown of the code:
+---
 
-### Libraries and Dependencies:
-- **os**: Used for file and directory manipulation (e.g., creating folders, checking if files exist).
-- **re**: Provides support for regular expressions to extract specific data from the M3U file.
-- **requests**: Handles the downloading of logos from URLs.
-- **unicodedata**: Normalizes unicode characters in filenames to remove special or non-ASCII characters.
-- **urllib3**: Suppresses SSL warnings when working with insecure HTTP requests.
+MUOS IPTV M3U Playlist Organizer
 
-### Configuration:
-- **m3u_file**: Specifies the input M3U playlist file (`playlist.m3u`).
-- **output_folder**: The folder where channels will be categorized and saved (`categories`).
-- **logo_folder**: The folder to store downloaded logos (`logos/`).
-- **skip_domain**: A domain URL (`https://temp-me.xyz`) that, if present in a logo URL, will be skipped.
+This Python script processes M3U playlist files, categorizes channels based on URL patterns, and organizes them into folders. It also downloads and saves channel logos from the provided URLs.
 
-### Setup:
-- **Ensure necessary folders exist**: Creates the output and logo folders if they don't already exist using `os.makedirs()`.
+## Features:
+- **Categorization**: Channels are categorized into "TV Shows", "Movies", "TV Channels", or "Others" based on the URL.
+  - "TV Shows" are identified if the URL contains the word `series`.
+  - "Movies" are identified if the URL contains the word `movie`.
+  - "TV Channels" are identified if the URL contains the string `INSERT_SOMETHING_OTHER_HERE_THATS_NOT_MOVIES_OR_SHOWS_ETC`.
+- **Organized Output**: M3U files are organized into categories such as "TV Shows", "Movies", and "TV Channels", with subfolders for each show or movie.
+- **Logo Downloads**: Logos are downloaded and saved in a designated folder.
+- **Clean Filenames**: Filenames are sanitized to remove special characters, and any Unicode characters are normalized to prevent issues on various file systems.
+- **Blocked Domain Filter**: Any URL containing a blocked domain (`https://temp-me.xyz`) will be skipped.
 
-### Regular Expression Pattern:
-- **pattern**: A regex pattern to extract details from the M3U file:
-  - `tvg-name`: The name of the TV channel.
-  - `tvg-logo`: URL of the TV channel’s logo.
-  - `group-title`: The category or group the channel belongs to (e.g., "Movies", "TV Shows").
-  - `url`: The actual URL of the M3U stream for the channel.
+## Requirements
+- Python 3.x
+- Requests library
+- urllib3 library
 
-### Main Processing Logic:
+You can install the required libraries using pip:
 
-1. **Read M3U File**: The script reads the content of the M3U playlist file and extracts relevant information using the regex pattern.
-  
-2. **Clean Filenames and Group Titles**:
-   - **clean_filename**: Normalizes and cleans the `tvg-name` by removing special characters, spaces, and ensuring compatibility with file systems.
-   - **clean_group_title**: Specifically cleans the `group-title`, handling cases like "UK" which is replaced with "_UK".
-  
-3. **Categorize Channels**: The `categorize_channel` function determines if the channel is a TV show, movie, or TV channel based on its URL. If it doesn't match any of the predefined categories, it is categorized as "Others".
+```bash
+pip install requests urllib3
+```
 
-4. **Create Directories and M3U Files**:
-   - For each channel, a corresponding folder is created based on the category (e.g., Movies, TV Shows, etc.), and a new M3U file is created in that folder with the channel's details. If the M3U file for the channel already exists, it is skipped.
+## Configuration
+Update the following variables in the script to fit your needs:
 
-5. **Logo Download**:
-   - The script attempts to download the logo for each channel (if it’s not already downloaded), saving it to the logo folder with a filename based on the cleaned `tvg-name`. The script handles potential errors with downloading the logo, including handling timeouts and failed requests.
+- `m3u_file`: Path to the input M3U playlist file.
+- `output_folder`: Path where the categorized M3U files will be saved.
+- `logo_folder`: Path where the channel logos will be saved.
+- `skip_domain`: Any domain URL containing this string will be skipped when processing.
 
-### Key Functions:
-- **clean_filename**: Cleans and normalizes the channel name to be used as a filename.
-- **clean_group_title**: Custom handling for group titles, specifically for "UK".
-- **categorize_channel**: Categorizes the channels into TV Shows, Movies, or TV Channels based on URL patterns.
-- **extract_show_title**: For TV Shows, extracts the show title (e.g., removes episode numbers).
+## Usage
 
-### Output:
-1. **M3U Files**: The script creates categorized M3U files for each channel.
-2. **Logos**: Downloads and saves channel logos (if not already downloaded).
-3. **Folder Structure**: The folders are organized by category (TV Shows, Movies, etc.) and group-title, with subdirectories if necessary.
+1. **Prepare your M3U file**: Ensure your M3U file is formatted properly, with `#EXTINF` lines containing the `tvg-name`, `tvg-logo`, `group-title`, and the stream URL.
+   
+2. **Run the Script**: Once the configuration is set, run the script:
 
-### Example Folder Structure:
+```bash
+python m3u_organizer.py
+```
+
+3. **Result**: The script will process the M3U file, categorize the channels into folders based on their type, and download logos. If a channel's URL contains the specified placeholder (`INSERT_SOMETHING_OTHER_HERE_THATS_NOT_MOVIES_OR_SHOWS_ETC`), it will be categorized as "TV Channels".
+
+## Example Directory Structure
 ```
 categories/
-    TV Shows/
-        Comedy/
-            Friends/
-                Friends.m3u
-    Movies/
-        Action/
-            DieHard.m3u
-    TV Channels/
-        News/
-            BBC.m3u
-logos/
-    Friends.png
-    DieHard.png
-    BBC.png
+├── Movies/
+│   └── Action/
+│       └── Movie1/
+│           └── Movie1.m3u
+├── TV Shows/
+│   └── Drama/
+│       └── Show1/
+│           └── Show1.m3u
+├── TV Channels/
+│   └── Sports/
+│       └── Channel1/
+│           └── Channel1.m3u
+└── logos/
+    └── Show1.png
+    └── Channel1.png
 ```
 
-### Notes:
-- Ensure the **playlist.m3u** file is in the same directory or update the `m3u_file` variable with the correct path.
-- The script uses SSL verification (`verify=False`) for insecure requests, so warnings about SSL certificates are suppressed. This could be unsafe in production environments, so it's something to be aware of.
+## Functions:
+### `clean_filename(name)`
+This function sanitizes the `tvg-name` to create a valid filename, removing any special characters and normalizing Unicode characters.
+
+### `clean_group_title(group_title)`
+This function specifically handles the "UK" part in group titles by replacing it with "_UK" to avoid issues in folder names.
+
+### `categorize_channel(url)`
+This function categorizes the URL based on the type of content:
+- `"TV Shows"`: If the URL contains `series`.
+- `"Movies"`: If the URL contains `movie`.
+- `"TV Channels"`: If the URL contains the string `INSERT_SOMETHING_OTHER_HERE_THATS_NOT_MOVIES_OR_SHOWS_ETC`.
+- `"Others"`: For any other URL.
+
+### `extract_show_title(tvg_name)`
+This function extracts the show title, removing season and episode identifiers (e.g., "ShowName S01E01").
+
+### Downloading Logos:
+The script also downloads logos associated with each channel and saves them in the `logos` folder. Logos are only downloaded if they don’t already exist in the target folder. Further work is to be done to resize and creaate the correct folder structure.
+
